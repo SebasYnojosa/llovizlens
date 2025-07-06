@@ -17,7 +17,7 @@ class PantallaResultado extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Resultado'),
+        title: const Text('Resultado IA Local'),
       ),
       body: Center(
         child: Column(

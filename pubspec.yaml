@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   image_picker: ^1.0.7
   http: ^1.1.0
+  permission_handler: ^11.0.1
+  tflite_flutter: ^0.9.1
 
 dev_dependencies:
   flutter_test:
@@ -89,3 +91,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  assets:
+    - assets/model/
+    - assets/model/metadata_modelo.json
