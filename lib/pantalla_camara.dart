@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
+import 'procesador_ia_amazonas.dart';
 
 class PantallaCamara extends StatefulWidget {
   const PantallaCamara({super.key});
@@ -19,50 +20,33 @@ class _PantallaCamaraState extends State<PantallaCamara> {
   final ImagePicker _picker = ImagePicker();
   bool _cargando = false;
   String? _error;
-  Interpreter? _interpreter;
+  final ProcesadorIAAmazonas _procesador = ProcesadorIAAmazonas();
   List<String> _categorias = [];
-  Map<String, dynamic>? _metadata;
 
   @override
   void initState() {
     super.initState();
-    _cargarModelo();
-    // Solicitar permisos automáticamente al iniciar
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _verificarPermisos();
-    });
+    _inicializarApp();
   }
 
-  Future<void> _cargarModelo() async {
+  Future<void> _inicializarApp() async {
     try {
-      // Cargar metadata del modelo
-      await _cargarMetadata();
+      // Cargar modelo del Amazonas
+      await _procesador.cargarModelo();
       
-      // Por ahora, simulamos que el modelo está cargado
-      // En producción, cargarías el modelo real:
-      // _interpreter = await Interpreter.fromAsset('model/tu_modelo.tflite');
+      // Obtener categorías
+      _categorias = _procesador.categorias;
       
-      print('Metadata cargada exitosamente');
-      print('Categorías disponibles: $_categorias');
+      // Verificar permisos
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _verificarPermisos();
+      });
+      
     } catch (e) {
       setState(() {
-        _error = 'Error al cargar el modelo IA: $e';
+        _error = 'Error al cargar el modelo del Amazonas: $e';
       });
-      print('Error cargando modelo: $e');
-    }
-  }
-
-  Future<void> _cargarMetadata() async {
-    try {
-      // Cargar metadata desde assets
-      final metadataString = await DefaultAssetBundle.of(context)
-          .loadString('assets/model/metadata_modelo.json');
-      _metadata = json.decode(metadataString);
-      _categorias = List<String>.from(_metadata!['categorias']);
-    } catch (e) {
-      print('Error cargando metadata: $e');
-      // Usar categorías por defecto si no se puede cargar metadata
-      _categorias = ['rosa', 'girasol', 'tulipan', 'margarita', 'lirio'];
+      print('❌ Error inicializando app: $e');
     }
   }
 
@@ -74,7 +58,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
         if (mounted) {
           _mostrarError(
             'Permiso de cámara requerido',
-            'La aplicación necesita acceso a la cámara para identificar flores. Por favor, concede el permiso en la configuración.',
+            'La aplicación necesita acceso a la cámara para identificar especies del Amazonas. Por favor, concede el permiso en la configuración.',
           );
         }
         return;
@@ -100,7 +84,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
       if (!status.isGranted) {
         _mostrarError(
           'Permiso de cámara requerido',
-          'La aplicación necesita acceso a la cámara para identificar flores. Por favor, concede el permiso en la configuración.',
+          'La aplicación necesita acceso a la cámara para identificar especies del Amazonas. Por favor, concede el permiso en la configuración.',
         );
         return;
       }
@@ -186,18 +170,12 @@ class _PantallaCamaraState extends State<PantallaCamara> {
     });
     
     try {
-      if (_categorias.isEmpty) {
-        throw Exception('No se pudieron cargar las categorías del modelo.');
+      if (!_procesador.modeloCargado) {
+        throw Exception('Modelo del Amazonas no está cargado.');
       }
 
-      // Simular procesamiento de IA
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // Simular resultado aleatorio
-      final random = DateTime.now().millisecondsSinceEpoch;
-      final indiceAleatorio = random % _categorias.length;
-      final categoria = _categorias[indiceAleatorio];
-      final confianza = 70.0 + (random % 30); // Entre 70% y 100%
+      // Procesar con IA real
+      final resultado = await _procesador.procesarImagen(foto);
       
       // Navegar a la pantalla de resultado
       if (mounted) {
@@ -205,9 +183,10 @@ class _PantallaCamaraState extends State<PantallaCamara> {
           context,
           MaterialPageRoute(
             builder: (context) => PantallaResultado(
-              nombreComun: categoria.toUpperCase(),
-              nombreCientifico: 'Confianza: ${confianza.toStringAsFixed(1)}% (Simulado)',
+              nombreComun: resultado['especie'],
+              nombreCientifico: 'Confianza: ${resultado['confianza'].toStringAsFixed(1)}%',
               foto: foto,
+              resultadoCompleto: resultado,
             ),
           ),
         );
@@ -218,15 +197,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
         _cargando = false;
       });
       
-      String titulo = 'Error de IA';
-      String mensaje = e.toString();
-      
-      if (e.toString().contains('categorías')) {
-        titulo = 'Error de configuración';
-        mensaje = 'No se pudieron cargar las categorías del modelo. Verifica el archivo metadata_modelo.json';
-      }
-      
-      _mostrarError(titulo, mensaje);
+      _mostrarError('Error de IA del Amazonas', e.toString());
     } finally {
       if (mounted) {
         setState(() {
@@ -278,8 +249,8 @@ class _PantallaCamaraState extends State<PantallaCamara> {
               'Sugerencias:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const Text('• Verifica que metadata_modelo.json esté en assets/model/'),
-            const Text('• Para IA real, ejecuta crear_modelo_ejemplo.py'),
+            const Text('• Verifica que model.tflite esté en assets/model/'),
+            const Text('• Verifica que labels.txt esté en assets/model/'),
             const Text('• Intenta tomar otra foto'),
           ],
         ),
@@ -406,7 +377,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
                                     ),
                                     const SizedBox(height: 20),
                                     Text(
-                                      'Toca para tomar una foto',
+                                      'Toca para identificar',
                                       style: TextStyle(
                                         color: Colors.green[700],
                                         fontSize: 18,
@@ -415,7 +386,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
-                                      'de una flor para identificarla',
+                                      'una especie del Amazonas',
                                       style: TextStyle(
                                         color: Colors.grey[600],
                                         fontSize: 14,
@@ -423,65 +394,6 @@ class _PantallaCamaraState extends State<PantallaCamara> {
                                     ),
                                   ],
                                 ),
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      const SizedBox(height: 20),
-                      Container(
-                        width: double.infinity,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.green[600]!, Colors.green[700]!],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.green.withOpacity(0.3),
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: _solicitarPermisoYTomarFoto,
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.camera_alt,
-                                      size: 28,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 15),
-                                  const Text(
-                                    'IDENTIFICAR FLOR',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      letterSpacing: 1.2,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -500,7 +412,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
                                   Icon(Icons.info_outline, color: Colors.blue[600]),
                                   const SizedBox(width: 10),
                                   Text(
-                                    'Modelo IA Simulado',
+                                    'Modelo IA del Amazonas',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.blue[800],
@@ -510,7 +422,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                'Categorías: ${_categorias.join(', ')}',
+                                'Especies disponibles: ${_categorias.length}',
                                 style: TextStyle(color: Colors.blue[700]),
                               ),
                             ],
@@ -546,5 +458,11 @@ class _PantallaCamaraState extends State<PantallaCamara> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _procesador.dispose();
+    super.dispose();
   }
 }
