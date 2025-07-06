@@ -98,8 +98,28 @@ class ProcesadorIAAmazonas {
       // 3. Ejecutar inferencia
       _interpreter!.run(input, output);
       
-      // 4. Procesar resultados
-      final resultados = _procesarResultados(output[0] as List<double>);
+      // 4. Verificar valores raw del modelo
+      final rawOutput = output[0] as List<double>;
+      print('🔍 Valores raw del modelo:');
+      print('   - Mínimo: ${rawOutput.reduce((a, b) => a < b ? a : b).toStringAsFixed(3)}');
+      print('   - Máximo: ${rawOutput.reduce((a, b) => a > b ? a : b).toStringAsFixed(3)}');
+      print('   - Promedio: ${(rawOutput.reduce((a, b) => a + b) / rawOutput.length).toStringAsFixed(3)}');
+      
+      // Mostrar los 5 valores más altos
+      List<MapEntry<int, double>> rawWithIndices = [];
+      for (int i = 0; i < rawOutput.length; i++) {
+        rawWithIndices.add(MapEntry(i, rawOutput[i]));
+      }
+      rawWithIndices.sort((a, b) => b.value.compareTo(a.value));
+      
+      print('   - Top 5 valores raw:');
+      for (int i = 0; i < 5 && i < rawWithIndices.length; i++) {
+        final entry = rawWithIndices[i];
+        print('     ${i + 1}. ${_categorias[entry.key]}: ${entry.value.toStringAsFixed(3)}');
+      }
+      
+      // 5. Procesar resultados
+      final resultados = _procesarResultados(rawOutput);
       
       print('✅ Procesamiento completado');
       return resultados;
@@ -119,6 +139,8 @@ class ProcesadorIAAmazonas {
       // 2. Decodificar imagen
       final image = img.decodeImage(bytes);
       if (image == null) throw Exception('No se pudo decodificar la imagen');
+      
+      print('📸 Imagen original: ${image.width}x${image.height}');
       
       // 3. Obtener tamaño objetivo del modelo
       final targetSize = _inputShape![1]; // Asumiendo forma [1, height, width, 3]
@@ -142,7 +164,45 @@ class ProcesadorIAAmazonas {
         ),
       );
       
+      // 6. Verificar estadísticas de la imagen
+      double minVal = 1.0;
+      double maxVal = 0.0;
+      double sumVal = 0.0;
+      int totalPixels = 0;
+      
+      for (int y = 0; y < targetSize; y++) {
+        for (int x = 0; x < targetSize; x++) {
+          for (int c = 0; c < 3; c++) {
+            final val = tensor[y][x][c];
+            if (val < minVal) minVal = val;
+            if (val > maxVal) maxVal = val;
+            sumVal += val;
+            totalPixels++;
+          }
+        }
+      }
+      
+      final promedio = sumVal / totalPixels;
+      
       print('📐 Imagen redimensionada a ${targetSize}x${targetSize}');
+      print('📊 Estadísticas de píxeles:');
+      print('   - Mínimo: ${minVal.toStringAsFixed(3)}');
+      print('   - Máximo: ${maxVal.toStringAsFixed(3)}');
+      print('   - Promedio: ${promedio.toStringAsFixed(3)}');
+      
+      // 7. Verificar si la imagen es muy oscura o muy clara
+      if (promedio < 0.1) {
+        print('⚠️  ADVERTENCIA: Imagen muy oscura (promedio < 0.1)');
+      } else if (promedio > 0.9) {
+        print('⚠️  ADVERTENCIA: Imagen muy clara (promedio > 0.9)');
+      }
+      
+      // 8. Verificar contraste
+      final contraste = maxVal - minVal;
+      if (contraste < 0.1) {
+        print('⚠️  ADVERTENCIA: Imagen con poco contraste (${contraste.toStringAsFixed(3)})');
+      }
+      
       return tensor;
       
     } catch (e) {
