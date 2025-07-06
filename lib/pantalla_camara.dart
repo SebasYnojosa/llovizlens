@@ -27,6 +27,10 @@ class _PantallaCamaraState extends State<PantallaCamara> {
   void initState() {
     super.initState();
     _cargarModelo();
+    // Solicitar permisos automáticamente al iniciar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _verificarPermisos();
+    });
   }
 
   Future<void> _cargarModelo() async {
@@ -52,7 +56,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
     try {
       // Cargar metadata desde assets
       final metadataString = await DefaultAssetBundle.of(context)
-          .loadString('model/metadata_modelo.json');
+          .loadString('assets/model/metadata_modelo.json');
       _metadata = json.decode(metadataString);
       _categorias = List<String>.from(_metadata!['categorias']);
     } catch (e) {
@@ -62,12 +66,42 @@ class _PantallaCamaraState extends State<PantallaCamara> {
     }
   }
 
+  Future<void> _verificarPermisos() async {
+    var status = await Permission.camera.status;
+    if (!status.isGranted) {
+      status = await Permission.camera.request();
+      if (!status.isGranted) {
+        if (mounted) {
+          _mostrarError(
+            'Permiso de cámara requerido',
+            'La aplicación necesita acceso a la cámara para identificar flores. Por favor, concede el permiso en la configuración.',
+          );
+        }
+        return;
+      }
+    }
+    
+    // Si los permisos están concedidos, mostrar mensaje de éxito
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('¡Cámara lista! Toca el botón para tomar una foto'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   Future<void> _solicitarPermisoYTomarFoto() async {
     var status = await Permission.camera.status;
     if (!status.isGranted) {
       status = await Permission.camera.request();
       if (!status.isGranted) {
-        _mostrarError('Permiso denegado', 'La app necesita acceso a la cámara para funcionar.');
+        _mostrarError(
+          'Permiso de cámara requerido',
+          'La aplicación necesita acceso a la cámara para identificar flores. Por favor, concede el permiso en la configuración.',
+        );
         return;
       }
     }
@@ -80,29 +114,68 @@ class _PantallaCamaraState extends State<PantallaCamara> {
         _error = null;
         _cargando = true;
       });
+      
+      // Mostrar mensaje de preparación
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Abriendo cámara...'),
+            backgroundColor: Colors.blue,
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+      
       final XFile? imagen = await _picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 80,
+        imageQuality: 85,
         maxWidth: 1024,
         maxHeight: 1024,
+        preferredCameraDevice: CameraDevice.rear,
       );
+      
       if (imagen != null) {
         setState(() {
           _foto = File(imagen.path);
-          _cargando = false;
         });
+        
+        // Mostrar mensaje de éxito
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('¡Foto tomada! Procesando con IA...'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+        
+        // Procesar automáticamente la foto
         await _procesarFotoIA(_foto!);
       } else {
         setState(() {
           _cargando = false;
         });
+        // Mostrar mensaje si se canceló
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se tomó ninguna foto'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }
     } catch (e) {
       setState(() {
         _cargando = false;
         _error = 'Error al abrir la cámara: $e';
       });
-      _mostrarError('Error al abrir la cámara', 'No se pudo acceder a la cámara. Verifica los permisos de la aplicación.');
+      _mostrarError(
+        'Error al abrir la cámara',
+        'No se pudo acceder a la cámara. Verifica los permisos de la aplicación o reinicia la app.',
+      );
     }
   }
 
@@ -259,66 +332,155 @@ class _PantallaCamaraState extends State<PantallaCamara> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      GestureDetector(
+                        onTap: _solicitarPermisoYTomarFoto,
+                        child: Container(
+                          width: 250,
+                          height: 250,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(25),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.3),
+                                spreadRadius: 2,
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: Colors.green[200]!,
+                              width: 3,
+                            ),
+                          ),
+                          child: _foto != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(22),
+                                  child: Stack(
+                                    children: [
+                                      Image.file(
+                                        _foto!,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                      ),
+                                      Positioned(
+                                        top: 10,
+                                        right: 10,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withOpacity(0.7),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: const Text(
+                                            'Toca para nueva foto',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green[50],
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.camera_alt,
+                                        size: 80,
+                                        color: Colors.green[600],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Text(
+                                      'Toca para tomar una foto',
+                                      style: TextStyle(
+                                        color: Colors.green[700],
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'de una flor para identificarla',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      const SizedBox(height: 20),
                       Container(
-                        width: 200,
-                        height: 200,
+                        width: double.infinity,
+                        height: 70,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          gradient: LinearGradient(
+                            colors: [Colors.green[600]!, Colors.green[700]!],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.3),
+                              color: Colors.green.withOpacity(0.3),
                               spreadRadius: 2,
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
                           ],
                         ),
-                        child: _foto != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: Image.file(
-                                  _foto!,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : Column(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _solicitarPermisoYTomarFoto,
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    Icons.camera_alt,
-                                    size: 80,
-                                    color: Colors.green[400],
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.camera_alt,
+                                      size: 28,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    'Toca para tomar una foto',
+                                  const SizedBox(width: 15),
+                                  const Text(
+                                    'IDENTIFICAR FLOR',
                                     style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 16,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      letterSpacing: 1.2,
                                     ),
                                   ),
                                 ],
                               ),
-                      ),
-                      const SizedBox(height: 30),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 60,
-                        child: ElevatedButton.icon(
-                          onPressed: _solicitarPermisoYTomarFoto,
-                          icon: const Icon(Icons.camera_alt, size: 24),
-                          label: const Text(
-                            'Tomar Foto',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green[600],
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
                             ),
-                            elevation: 5,
                           ),
                         ),
                       ),
