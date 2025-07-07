@@ -1,16 +1,33 @@
-# llovizlens
+# Backend Flask para Llovizlens
 
-A new Flutter project.
+## Requisitos
+- Python 3.8+
+- pip
 
-## Getting Started
+## Instalación
 
-This project is a starting point for a Flutter application.
+```bash
+cd backend_flask
+pip install -r requirements.txt
+```
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+fluter pub get
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+python convertir_modelo_simple.py 
+--input tu_modelo.h5 --output model.tflite --verify
+```
+
+## Ejecución
+```bash
+fluter run
+```
+
+## Endpoint de predicción
+
+- POST `/predict`
+- Respuesta: JSON con nombre común y científico 
+
