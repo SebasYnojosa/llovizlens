@@ -1,7 +1,6 @@
-flask
-flask-cors
+flask==2.3.3
+flask-cors==4.0.0
 tensorflow
-numpy
-pillow
-duckduckgo_search
-requests 
+pillow==10.0.1
+numpy==1.24.3
+requests==2.31.0
