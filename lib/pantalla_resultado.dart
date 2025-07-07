@@ -15,6 +15,35 @@ class PantallaResultado extends StatelessWidget {
     this.resultadoCompleto,
   });
 
+  /// Extrae el valor de confianza del nombre científico
+  double _getConfianza() {
+    try {
+      final match = RegExp(r'Confianza: (\d+\.?\d*)%').firstMatch(nombreCientifico);
+      if (match != null) {
+        return double.parse(match.group(1)!);
+      }
+    } catch (e) {
+      // Si no se puede parsear, asumir confianza media
+    }
+    return 50.0;
+  }
+
+  /// Retorna el icono apropiado basado en la confianza
+  IconData _getConfianzaIcon() {
+    final confianza = _getConfianza();
+    if (confianza >= 80.0) return Icons.eco;
+    if (confianza >= 60.0) return Icons.help_outline;
+    return Icons.warning_amber;
+  }
+
+  /// Retorna el color apropiado basado en la confianza
+  Color _getConfianzaColor() {
+    final confianza = _getConfianza();
+    if (confianza >= 80.0) return Colors.green[600]!;
+    if (confianza >= 60.0) return Colors.orange[600]!;
+    return Colors.red[600]!;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,10 +110,11 @@ class PantallaResultado extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
+                    // Icono basado en confianza
                     Icon(
-                      Icons.eco,
+                      _getConfianzaIcon(),
                       size: 50,
-                      color: Colors.green[600],
+                      color: _getConfianzaColor(),
                     ),
                     const SizedBox(height: 15),
                     Text(
@@ -105,6 +135,33 @@ class PantallaResultado extends StatelessWidget {
                       ),
                       textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 15),
+                    // Mostrar consejos si la confianza es baja
+                    if (_getConfianza() < 70.0) ...[
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.orange[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.orange[200]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.lightbulb_outline, color: Colors.orange[600], size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Confianza baja. Intenta tomar la foto con mejor iluminación y enfoque.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange[800],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

@@ -1,31 +1,10 @@
-Apamates
-Araguaney
-Araguato
-Ave del paraíso
-Azulejo
-Baba
-Baquiro
-Cachicamo
-Cari cari
-Cereza
-Chiguire
-Culebra
-Curí
-Falsa coral
-Indio desnudo (Arbol)
-Lapa
-Lora
-Loro real
-Monos capuchino
-Morocoto
-Morrocoy
-Nutria gigante
-Orquídeas
-Pavón
-Payara
-Pereza
-Roble
-Sapito minero
-Tucan
-Turpial
-Uva playera
+gato
+perro
+caballo
+vaca
+oveja
+cerdo
+pollo
+pato
+conejo
+elefante

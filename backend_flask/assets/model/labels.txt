@@ -1,0 +1,10 @@
+gato
+perro
+caballo
+vaca
+oveja
+cerdo
+pollo
+pato
+conejo
+elefante

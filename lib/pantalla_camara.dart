@@ -5,7 +5,7 @@ import 'pantalla_resultado.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:tflite_flutter/tflite_flutter.dart';
+
 import 'procesador_ia_amazonas.dart';
 
 class PantallaCamara extends StatefulWidget {
@@ -31,8 +31,8 @@ class _PantallaCamaraState extends State<PantallaCamara> {
 
   Future<void> _inicializarApp() async {
     try {
-      // Cargar modelo del Amazonas
-      await _procesador.cargarModelo();
+      // Inicializar procesador del Amazonas
+      await _procesador.inicializar();
       
       // Obtener categorías
       _categorias = _procesador.categorias;
@@ -44,7 +44,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
       
     } catch (e) {
       setState(() {
-        _error = 'Error al cargar el modelo del Amazonas: $e';
+        _error = 'Error al inicializar el procesador del Amazonas: $e';
       });
       print('❌ Error inicializando app: $e');
     }
@@ -171,7 +171,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
     
     try {
       if (!_procesador.modeloCargado) {
-        throw Exception('Modelo del Amazonas no está cargado.');
+        throw Exception('Procesador del Amazonas no está inicializado.');
       }
 
       // Procesar con IA real

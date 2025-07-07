@@ -11,16 +11,23 @@ cd backend_flask
 pip install -r requirements.txt
 ```
 
-## Ejecución
 
 ```bash
-python app.py
+fluter pub get
 ```
 
-El backend estará disponible en http://localhost:5000
+```bash
+python convertir_modelo_simple.py 
+--input tu_modelo.h5 --output model.tflite --verify
+```
+
+## Ejecución
+```bash
+fluter run
+```
 
 ## Endpoint de predicción
 
 - POST `/predict`
-- Body: imagen (form-data, campo 'file')
 - Respuesta: JSON con nombre común y científico 
+

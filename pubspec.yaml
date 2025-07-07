@@ -27,4 +27,3 @@ flutter:
 
   assets:
     - assets/model/
-    - assets/model/metadata_modelo.json
