@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 
 class PantallaResultado extends StatelessWidget {
   final String nombreComun;
@@ -46,6 +48,20 @@ class PantallaResultado extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future<String> obtenerNombreCientifico(String nombreComun) async {
+      try {
+        final String jsonString = await rootBundle.loadString('assets/especies.json');
+        final List<dynamic> data = json.decode(jsonString);
+        final especie = data.firstWhere(
+          (e) => (e['nombreComun'] ?? '').toLowerCase() == nombreComun.toLowerCase(),
+          orElse: () => null,
+        );
+        if (especie != null && especie['nombreCientifico'] != null) {
+          return especie['nombreCientifico'];
+        }
+      } catch (_) {}
+      return nombreCientifico;
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Resultados'),
@@ -127,14 +143,35 @@ class PantallaResultado extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 10),
-                    Text(
-                      nombreCientifico,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                   FutureBuilder<String>(
+                     future: obtenerNombreCientifico(nombreComun),
+                     builder: (context, snapshot) {
+                       final nombreCient = snapshot.data ?? nombreCientifico;
+                       return Column(
+                         children: [
+                           Text(
+                             nombreCient,
+                             style: TextStyle(
+                               fontSize: 16,
+                               color: Colors.grey[600],
+                               fontStyle: FontStyle.italic,
+                             ),
+                             textAlign: TextAlign.center,
+                           ),
+                           const SizedBox(height: 6),
+                           Text(
+                             'Confianza: ${_getConfianza().toStringAsFixed(1)}%',
+                             style: TextStyle(
+                               fontSize: 15,
+                               color: Colors.blueGrey[700],
+                               fontWeight: FontWeight.w500,
+                             ),
+                             textAlign: TextAlign.center,
+                           ),
+                         ],
+                       );
+                     },
+                   ),
                     const SizedBox(height: 15),
                     // Mostrar consejos si la confianza es baja
                     if (_getConfianza() < 70.0) ...[

@@ -1,0 +1,97 @@
+[
+    {
+      "nombreComun": "Azulejo",
+      "nombreCientifico": "Thraupis episcopus",
+      "descripcion": "Ave pequeña de color azul, común en jardines y áreas urbanas de América tropical."
+    },
+    {
+      "nombreComun": "Colibri",
+      "nombreCientifico": "Trochilidae",
+      "descripcion": "Aves pequeñas y coloridas conocidas por su rápido aleteo y capacidad de volar en todas direcciones."
+    },
+    {
+      "nombreComun": "Sapo",
+      "nombreCientifico": "Bufonidae",
+      "descripcion": "Anfibios de piel rugosa, adaptados a vivir en tierra firme, con glándulas venenosas."
+    },
+    {
+      "nombreComun": "Baquiro",
+      "nombreCientifico": "Pecari tajacu",
+      "descripcion": "Mamífero similar a un cerdo salvaje, vive en rebaños en zonas tropicales de América."
+    },
+    {
+      "nombreComun": "Mono",
+      "nombreCientifico": "Cebus Erxleben",
+      "descripcion": "Primates inteligentes conocidos como monos capuchinos, habitan en selvas americanas."
+    },
+    {
+      "nombreComun": "Pez",
+      "nombreCientifico": "Characiformes",
+      "descripcion": "Orden diverso de peces de agua dulce que incluye pirañas y tetras."
+    },
+    {
+      "nombreComun": "Chiguire",
+      "nombreCientifico": "Hydrochoerus hydrochaeris",
+      "descripcion": "Roedor más grande del mundo, también llamado capibara, vive cerca de cuerpos de agua."
+    },
+    {
+      "nombreComun": "Iguana",
+      "nombreCientifico": "Iguanidae",
+      "descripcion": "Lagartos arbóreos de gran tamaño, herbívoros, comunes en zonas tropicales."
+    },
+    {
+      "nombreComun": "Tuqueque",
+      "nombreCientifico": "Hemidactylus mabouia",
+      "descripcion": "Gecko común en zonas urbanas, de hábitos nocturnos y gran adaptabilidad."
+    },
+    {
+      "nombreComun": "Anaconda",
+      "nombreCientifico": "Boidae",
+      "descripcion": "Serpientes constrictoras de gran tamaño, incluye a las boas y anacondas."
+    },
+    {
+      "nombreComun": "Tordo Maicero",
+      "nombreCientifico": "Icteridae",
+      "descripcion": "Familia de aves que incluye tordos y turpiales, conocidos por su canto melodioso."
+    },
+    {
+      "nombreComun": "Caicari Encrestado",
+      "nombreCientifico": "Caracara Merrem",
+      "descripcion": "Aves rapaces parecidas a halcones con crestas distintivas, comunes en América."
+    },
+    {
+      "nombreComun": "Alcaravan",
+      "nombreCientifico": "Burhinus Illiger",
+      "descripcion": "Aves zancudas de hábitos nocturnos, conocidas por sus grandes ojos amarillos."
+    },
+    {
+      "nombreComun": "Paloma",
+      "nombreCientifico": "Columbidae",
+      "descripcion": "Aves comunes en entornos urbanos y rurales, símbolos de paz en muchas culturas."
+    },
+    {
+      "nombreComun": "Aguila Pescadora",
+      "nombreCientifico": "Pandion haliaetus",
+      "descripcion": "Rapaz especializada en pescar, con distribución casi mundial cerca de cuerpos de agua."
+    },
+    {
+      "nombreComun": "Cotua",
+      "nombreCientifico": "Phalacrocorax Brisson",
+      "descripcion": "Aves acuáticas excelentes buceadoras, también conocidas como cormoranes."
+    },
+    {
+      "nombreComun": "Sapito Minero",
+      "nombreCientifico": "Dendrobatidae",
+      "descripcion": "Pequeñas ranas venenosas de colores brillantes, habitantes de selvas tropicales."
+    },
+    {
+      "nombreComun": "Perro",
+      "nombreCientifico": "Canis lupus familiaris",
+      "descripcion": "Mamífero doméstico, compañero leal del ser humano con gran diversidad de razas."
+    },
+    {
+      "nombreComun": "Gato",
+      "nombreCientifico": "Felis catus",
+      "descripcion": "Animal doméstico independiente y ágil, apreciado como mascota y cazador de roedores."
+    }
+]
