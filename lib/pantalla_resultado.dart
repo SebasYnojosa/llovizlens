@@ -48,7 +48,7 @@ class PantallaResultado extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Resultado - Especies del Amazonas'),
+        title: const Text('Resultados'),
         backgroundColor: Colors.green[700],
         foregroundColor: Colors.white,
       ),

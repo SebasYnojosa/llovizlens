@@ -12,7 +12,7 @@ class ProcesadorTFLiteOffline {
   List<String> _labels = [];
   bool _modeloCargado = false;
   int _inputSize = 224; // Tamaño de entrada del modelo
-  int _numClasses = 10; // Número de clases (ajustar según tu modelo)
+  int _numClasses = 19; // Número de clases (ajustar según tu modelo)
 
   // Getters
   bool get modeloCargado => _modeloCargado;
