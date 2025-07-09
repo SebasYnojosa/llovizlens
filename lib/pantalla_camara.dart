@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'procesador_ia_amazonas.dart';
+import 'procesador_tflite_offline.dart';
 
 class PantallaCamara extends StatefulWidget {
   const PantallaCamara({super.key});
@@ -20,8 +20,8 @@ class _PantallaCamaraState extends State<PantallaCamara> {
   final ImagePicker _picker = ImagePicker();
   bool _cargando = false;
   String? _error;
-  final ProcesadorIAAmazonas _procesador = ProcesadorIAAmazonas();
-  List<String> _categorias = [];
+  final ProcesadorTFLiteOffline _procesador = ProcesadorTFLiteOffline();
+  List<String> _labels = [];
 
   @override
   void initState() {
@@ -31,11 +31,10 @@ class _PantallaCamaraState extends State<PantallaCamara> {
 
   Future<void> _inicializarApp() async {
     try {
-      // Inicializar procesador del Amazonas
+      // Inicializar procesador TFLite offline
       await _procesador.inicializar();
-      
-      // Obtener categorías
-      _categorias = _procesador.categorias;
+      // Obtener etiquetas
+      _labels = _procesador.labels;
       
       // Verificar permisos
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -171,10 +170,9 @@ class _PantallaCamaraState extends State<PantallaCamara> {
     
     try {
       if (!_procesador.modeloCargado) {
-        throw Exception('Procesador del Amazonas no está inicializado.');
+        throw Exception('Procesador TFLite offline no está inicializado.');
       }
-
-      // Procesar con IA real
+      // Procesar con IA offline
       final resultado = await _procesador.procesarImagen(foto);
       
       // Navegar a la pantalla de resultado
@@ -397,7 +395,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      if (_categorias.isNotEmpty) ...[
+                      if (_labels.isNotEmpty) ...[
                         Container(
                           padding: const EdgeInsets.all(15),
                           decoration: BoxDecoration(
@@ -422,7 +420,7 @@ class _PantallaCamaraState extends State<PantallaCamara> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                'Especies disponibles: ${_categorias.length}',
+                                'Especies disponibles: ${_labels.length}',
                                 style: TextStyle(color: Colors.blue[700]),
                               ),
                             ],

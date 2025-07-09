@@ -5,7 +5,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as img;
 
 class ProcesadorTFLiteOffline {
-  static const String _modelPath = 'assets/model/model.tflite';
+  static const String _modelPath = 'assets/model/modeloV1.tflite';
   static const String _labelsPath = 'assets/model/labels.txt';
   
   Interpreter? _interpreter;
@@ -50,18 +50,18 @@ class ProcesadorTFLiteOffline {
       _interpreter = await Interpreter.fromAsset(_modelPath);
       
       // Obtener información del modelo
-      final inputDetails = _interpreter!.get_input_details();
-      final outputDetails = _interpreter!.get_output_details();
+      final inputTensor = _interpreter!.getInputTensor(0);
+      final outputTensor = _interpreter!.getOutputTensor(0);
       
       // Configurar parámetros según el modelo
-      _inputSize = inputDetails[0]['shape'][1]; // Asumiendo formato [1, height, width, 3]
-      _numClasses = outputDetails[0]['shape'][1]; // Asumiendo formato [1, num_classes]
+      _inputSize = inputTensor.shape[1]; // Asumiendo formato [1, height, width, 3]
+      _numClasses = outputTensor.shape[1]; // Asumiendo formato [1, num_classes]
       
       print('📊 Información del modelo:');
-      print('   - Tamaño de entrada: ${_inputSize}x${_inputSize}');
+      print('   - Tamaño de entrada:  [32m${_inputSize}x${_inputSize} [0m');
       print('   - Número de clases: $_numClasses');
-      print('   - Tipo de entrada: ${inputDetails[0]['dtype']}');
-      print('   - Tipo de salida: ${outputDetails[0]['dtype']}');
+      print('   - Tipo de entrada: ${inputTensor.type}');
+      print('   - Tipo de salida: ${outputTensor.type}');
       
     } catch (e) {
       print('❌ Error cargando modelo: $e');
@@ -104,13 +104,11 @@ class ProcesadorTFLiteOffline {
       final input = await _preprocesarImagen(imagen);
       
       // Preparar tensor de salida
-      final output = List.filled(_numClasses, 0.0);
-      
+      final output = [List.filled(_numClasses, 0.0)];
       // Ejecutar inferencia
       _interpreter!.run(input, output);
-      
       // Procesar resultados
-      final resultado = _procesarResultados(output);
+      final resultado = _procesarResultados(output[0]);
       
       print('✅ Procesamiento completado con TFLite');
       return resultado;
@@ -153,13 +151,13 @@ class ProcesadorTFLiteOffline {
                 double value;
                 switch (c) {
                   case 0: // R
-                    value = img.getRed(pixel) / 255.0;
+                    value = pixel.r / 255.0;
                     break;
                   case 1: // G
-                    value = img.getGreen(pixel) / 255.0;
+                    value = pixel.g / 255.0;
                     break;
                   case 2: // B
-                    value = img.getBlue(pixel) / 255.0;
+                    value = pixel.b / 255.0;
                     break;
                   default:
                     value = 0.0;
@@ -257,16 +255,22 @@ class ProcesadorTFLiteOffline {
     }
     
     try {
-      final inputDetails = _interpreter!.get_input_details();
-      final outputDetails = _interpreter!.get_output_details();
+      final inputTensor = _interpreter!.getInputTensor(0);
+      final outputTensor = _interpreter!.getOutputTensor(0);
       
       return {
         'modelo_cargado': true,
         'tamaño_entrada': _inputSize,
         'numero_clases': _numClasses,
         'especies_disponibles': _labels.length,
-        'detalles_entrada': inputDetails,
-        'detalles_salida': outputDetails,
+        'detalles_entrada': {
+          'shape': inputTensor.shape,
+          'type': inputTensor.type,
+        },
+        'detalles_salida': {
+          'shape': outputTensor.shape,
+          'type': outputTensor.type,
+        },
         'procesador': 'TensorFlow Lite Offline',
       };
     } catch (e) {

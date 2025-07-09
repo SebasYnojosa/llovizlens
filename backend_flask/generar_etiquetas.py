@@ -28,12 +28,25 @@ def generar_etiquetas_amazonas(num_clases=19):
     
     # Lista completa de especies del Amazonas
     todas_especies = [
-        'Apamates', 'Araguaney', 'Araguato', 'Ave del paraíso', 'Azulejo',
-        'Baba', 'Baquiro', 'Cachicamo', 'Cari cari', 'Cereza',
-        'Chiguire', 'Culebra', 'Curí', 'Falsa coral', 'Indio desnudo (Arbol)',
-        'Lapa', 'Lora', 'Loro real', 'Monos capuchino', 'Morocoto',
-        'Morrocoy', 'Nutria gigante', 'Orquídeas', 'Pavón', 'Payara',
-        'Pereza', 'Roble', 'Sapito minero', 'Tucan', 'Turpial', 'Uva playera'
+        'Aguila Pescadora', 
+        'Alcaravan', 
+        'Anaconda', 
+        'Azulejos',
+        'Baquiro',
+        'Caicari Encrestado',
+        'Chiguire',
+        'Colibri',
+        'Cotua',
+        'Gato',
+        'Iguana',
+        'Mono',
+        'Paloma',
+        'Perro',
+        'Pez',
+        'Sapito Minero',
+        'Sapo',
+        'Tordo Maicero',
+        'Tuqueque'
     ]
     
     # Tomar solo las primeras num_clases especies
@@ -61,7 +74,7 @@ def guardar_etiquetas(etiquetas, output_path):
 
 def main():
     # Verificar si existe el modelo
-    model_path = "model.tflite"
+    model_path = "modeloV1.tflite"
     if not os.path.exists(model_path):
         print(f"❌ No se encontró el modelo: {model_path}")
         print("💡 Asegúrate de haber convertido el modelo primero")
